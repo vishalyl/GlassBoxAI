@@ -71,5 +71,17 @@ npm run dev
 ### Database Setup
 Schema migrations and RLS policies are managed via SQL scripts in the `/supabase` folder. Run `supabase db reset` to apply all migrations.
 
+
 ---
 *Built for the Future of Work.*
+
+## 🚀 Deployment Config
+
+### Vercel Setup
+When deploying to Vercel, you must configure the following:
+
+1.  **Root Directory**: Set to `frontend` (Settings > General).
+2.  **Environment Variables**: Add your Supabase keys:
+    - `NEXT_PUBLIC_SUPABASE_URL`
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+

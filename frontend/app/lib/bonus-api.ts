@@ -24,7 +24,7 @@ async function calculateEmployeeContribution(
     }
 ): Promise<{
     totalContribution: number
-    projectBreakdown: BonusAllocation['calculation_details']['projects']
+    projectBreakdown: any[] // Fixed: avoid indexing optional type
 }> {
     let totalContribution = 0
     const projectBreakdown: any[] = []

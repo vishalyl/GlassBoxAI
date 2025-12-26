@@ -191,8 +191,8 @@ export default function OrganizationPage() {
                                 setFilterStatus={setFilterStatus}
                                 clearFilters={clearFilters}
                                 onShowAdd={() => setShowAddEmployeeModal(true)}
-                                onEdit={(emp) => setEditingEmployee(emp)}
-                                onArchive={(emp) => setArchivingEmployee(emp)}
+                                onEdit={(emp: any) => setEditingEmployee(emp)}
+                                onArchive={(emp: any) => setArchivingEmployee(emp)}
                                 onReload={loadData}
                             />
                         )}
@@ -200,7 +200,7 @@ export default function OrganizationPage() {
                             <DepartmentsTab
                                 departmentMetrics={departmentMetrics}
                                 onShowAdd={() => setShowAddDepartmentModal(true)}
-                                onEdit={(dept) => setEditingDepartment(dept)}
+                                onEdit={(dept: any) => setEditingDepartment(dept)}
                                 onReload={loadData}
                             />
                         )}
