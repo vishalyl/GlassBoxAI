@@ -182,6 +182,7 @@ export default function OrganizationPage() {
                         {activeTab === 'employees' && (
                             <EmployeesTab
                                 employees={filteredEmployees}
+                                allEmployees={employees}
                                 departments={departments}
                                 searchTerm={searchTerm}
                                 setSearchTerm={setSearchTerm}
@@ -279,6 +280,7 @@ function StatusBadge({ status }: { status: string }) {
 // Employees Tab
 function EmployeesTab({
     employees,
+    allEmployees,
     departments,
     searchTerm,
     setSearchTerm,
@@ -292,6 +294,14 @@ function EmployeesTab({
     onArchive,
     onReload
 }: any) {
+    // Helper function to get manager name from reports_to_id
+    // Department managers always report to CEO
+    function getManagerName(emp: any): string {
+        if (emp.is_department_manager) return 'CEO';
+        if (!emp.reports_to_id) return 'CEO';
+        const manager = allEmployees.find((e: any) => e.id === emp.reports_to_id);
+        return manager?.name || 'CEO';
+    }
     async function handleDelete(id: string) {
         if (!confirm('Are you sure you want to permanently delete this employee?')) return;
         try {
@@ -412,7 +422,7 @@ function EmployeesTab({
                                         <StatusBadge status={emp.status || 'active'} />
                                     </td>
                                     <td className="px-4 py-3 text-gray-700">
-                                        {emp.reports_to?.name || 'CEO'}
+                                        {getManagerName(emp)}
                                     </td>
                                     <td className="px-4 py-3 text-right space-x-2">
                                         {emp.status === 'terminated' ? (
@@ -571,9 +581,9 @@ function EmployeeModal({ departments, employees, editingEmployee, onClose, onSuc
         }
     }
 
-    // Get manager for selected department
-    const selectedDeptManager = employees.find((e: any) =>
-        e.department_id === formData.department_id && e.is_department_manager && e.status === 'active'
+    // Get all managers from all departments (excluding the current employee being edited)
+    const allManagers = employees.filter((e: any) =>
+        e.is_department_manager && e.status === 'active' && e.id !== editingEmployee?.id
     );
 
     return (
@@ -665,11 +675,11 @@ function EmployeeModal({ departments, employees, editingEmployee, onClose, onSuc
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">CEO / Founder</option>
-                                {selectedDeptManager && (
-                                    <option value={selectedDeptManager.id}>
-                                        {selectedDeptManager.name} (Dept Manager)
+                                {allManagers.map((mgr: any) => (
+                                    <option key={mgr.id} value={mgr.id}>
+                                        {mgr.name} ({mgr.department?.name || 'No Dept'})
                                     </option>
-                                )}
+                                ))}
                             </select>
                         </div>
 

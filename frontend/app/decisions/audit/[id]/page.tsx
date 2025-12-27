@@ -12,6 +12,7 @@ export default function AuditDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [explainEntry, setExplainEntry] = useState<any>(null);
 
     useEffect(() => {
         if (params.id) {
@@ -34,15 +35,17 @@ export default function AuditDetailPage() {
         }
     };
 
-    const toggleFlag = async (entry: any) => {
-        const newValue = !entry.is_flagged;
+    const flagDecision = async (entry: any) => {
+        // Only allow flagging (one-way)
+        if (entry.is_flagged) return;
+
         const updatedEntries = data.entries.map((e: any) =>
-            e.id === entry.id ? { ...e, is_flagged: newValue } : e
+            e.id === entry.id ? { ...e, is_flagged: true } : e
         );
         setData((prev: any) => ({ ...prev, entries: updatedEntries }));
 
         try {
-            await updateAuditEntryFlag(entry.id, newValue);
+            await updateAuditEntryFlag(entry.id, true);
         } catch (err: any) {
             console.error(err);
             alert('Failed to update flag status');
@@ -69,6 +72,7 @@ export default function AuditDetailPage() {
     const isBonus = data.decision_type === 'BONUS' || data.audit_type === 'BONUS';
     const totalBonus = data.entries?.reduce((sum: number, e: any) => sum + (e.manager_decision_value || 0), 0);
     const totalAiBonus = data.entries?.reduce((sum: number, e: any) => sum + (e.ai_recommendation_value || 0), 0);
+    const flaggedCount = data.entries?.filter((e: any) => e.is_flagged).length || 0;
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
@@ -100,11 +104,17 @@ export default function AuditDetailPage() {
 
             <div className="max-w-7xl mx-auto px-8 py-8">
                 {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                         <p className="text-gray-500 text-sm mb-1">Agreement Score</p>
                         <p className={`text-2xl font-bold ${data.agreement_score >= 80 ? 'text-green-600' : 'text-amber-600'}`}>
                             {data.agreement_score?.toFixed(1)}%
+                        </p>
+                    </div>
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <p className="text-gray-500 text-sm mb-1">Flagged Decisions</p>
+                        <p className={`text-2xl font-bold ${flaggedCount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                            {flaggedCount}
                         </p>
                     </div>
                     {isBonus && (
@@ -133,7 +143,7 @@ export default function AuditDetailPage() {
                                 <th className="px-6 py-3 text-sm font-medium text-gray-500">Manager Decision</th>
                                 <th className="px-6 py-3 text-sm font-medium text-gray-500">AI Recommendation</th>
                                 <th className="px-6 py-3 text-sm font-medium text-gray-500">Variance</th>
-                                <th className="px-6 py-3 text-sm font-medium text-gray-500 min-w-[200px]">Analysis (Toggle)</th>
+                                <th className="px-6 py-3 text-sm font-medium text-gray-500 min-w-[250px]">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -155,18 +165,26 @@ export default function AuditDetailPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-2">
+                                            {/* Flag Button */}
+                                            {entry.is_flagged ? (
+                                                <span className="px-3 py-1.5 rounded-md text-xs font-semibold border flex items-center gap-2 w-fit bg-red-100 text-red-900 border-red-200">
+                                                    ⚠️ Flagged
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    onClick={() => flagDecision(entry)}
+                                                    className="px-3 py-1.5 rounded-md text-xs font-semibold border flex items-center gap-2 w-fit transition-colors shadow-sm bg-amber-100 text-amber-900 border-amber-200 hover:bg-amber-200"
+                                                >
+                                                    🚩 Flag
+                                                </button>
+                                            )}
+
+                                            {/* Explain Calculation Button */}
                                             <button
-                                                onClick={() => toggleFlag(entry)}
-                                                className={`px-3 py-1.5 rounded-md text-xs font-semibold border flex items-center gap-2 w-fit transition-colors shadow-sm ${entry.is_flagged
-                                                        ? 'bg-red-100 text-red-900 border-red-200 hover:bg-red-200'
-                                                        : 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
-                                                    }`}
+                                                onClick={() => setExplainEntry(entry)}
+                                                className="text-blue-600 hover:text-blue-800 text-xs font-medium"
                                             >
-                                                {entry.is_flagged ? (
-                                                    <><span>⚠️</span> Flagged</>
-                                                ) : (
-                                                    <><span>✅</span> Fair Match</>
-                                                )}
+                                                Explain Calculation
                                             </button>
 
                                             {entry.is_flagged && entry.explanation && (
@@ -182,6 +200,125 @@ export default function AuditDetailPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Explain Calculation Modal */}
+            {explainEntry && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setExplainEntry(null)}
+                >
+                    <div
+                        className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-bold text-gray-900">
+                                    {explainEntry.employee?.name} - AI Calculation
+                                </h2>
+                                <button
+                                    onClick={() => setExplainEntry(null)}
+                                    className="text-gray-400 hover:text-gray-600 text-2xl"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div className="text-sm text-gray-600 mb-1">Manager Decision</div>
+                                        <div className="text-2xl font-bold text-gray-900">
+                                            {isBonus
+                                                ? `$${explainEntry.manager_decision_value?.toLocaleString()}`
+                                                : (explainEntry.manager_decision_value ? 'Promoted' : 'Not Promoted')}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-sm text-gray-600 mb-1">AI Recommendation</div>
+                                        <div className="text-2xl font-bold text-blue-600">
+                                            {isBonus
+                                                ? `$${explainEntry.ai_recommendation_value?.toLocaleString()}`
+                                                : `Rank #${explainEntry.ai_recommendation_value}`}
+                                        </div>
+                                    </div>
+                                </div>
+                                {isBonus && (
+                                    <div className="mt-4 pt-4 border-t border-blue-200">
+                                        <div className="text-sm text-gray-600 mb-1">Variance</div>
+                                        <div className={`text-xl font-bold ${explainEntry.variance_score > 20 ? 'text-red-600' : 'text-green-600'}`}>
+                                            {explainEntry.variance_score?.toFixed(1)}%
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <h3 className="font-semibold text-gray-900 mb-4">How AI Calculated This:</h3>
+
+                            <div className="space-y-3 text-sm text-gray-700">
+                                {isBonus ? (
+                                    <>
+                                        <div className="p-3 bg-gray-50 rounded-lg">
+                                            <p className="font-medium mb-2">📊 Performance-Based Bonus Formula:</p>
+                                            <p className="text-gray-600">
+                                                AI calculates bonus based on: Project Weight × Task Contribution × Performance Score
+                                            </p>
+                                        </div>
+                                        <div className="p-3 bg-gray-50 rounded-lg">
+                                            <p className="font-medium mb-2">📈 Performance Score Components:</p>
+                                            <ul className="list-disc list-inside text-gray-600 space-y-1">
+                                                <li>Manager Rating (40% weight)</li>
+                                                <li>Peer Rating (30% weight)</li>
+                                                <li>KPI Metrics (30% weight)</li>
+                                            </ul>
+                                        </div>
+                                        <div className="p-3 bg-gray-50 rounded-lg">
+                                            <p className="font-medium mb-2">🎯 Task Contribution:</p>
+                                            <p className="text-gray-600">
+                                                Calculated as the ratio of employee's task weights to total project task weights
+                                            </p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="p-3 bg-gray-50 rounded-lg">
+                                            <p className="font-medium mb-2">📊 Promotion Ranking Formula:</p>
+                                            <p className="text-gray-600">
+                                                AI ranks candidates by: Total Performance Score across all projects
+                                            </p>
+                                        </div>
+                                        <div className="p-3 bg-gray-50 rounded-lg">
+                                            <p className="font-medium mb-2">📈 Score Components:</p>
+                                            <ul className="list-disc list-inside text-gray-600 space-y-1">
+                                                <li>Project Weight × Task Volume × Performance Ratings</li>
+                                                <li>Manager, Peer, and KPI ratings factored in</li>
+                                            </ul>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {explainEntry.is_flagged && explainEntry.explanation && (
+                                <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <p className="font-semibold text-red-800 mb-1">⚠️ Flag Reason:</p>
+                                    <p className="text-red-700">{explainEntry.explanation}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+                            <button
+                                onClick={() => setExplainEntry(null)}
+                                className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

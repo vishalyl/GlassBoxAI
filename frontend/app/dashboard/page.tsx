@@ -72,7 +72,9 @@ export default function DashboardPage() {
                     analyzed_decisions: 0,
                     high_risk_decisions: 0,
                     avg_risk_score: 0,
-                    decisions_by_type: {}
+                    decisions_by_type: {},
+                    active_employees: 0,
+                    total_projects: 0
                 });
             }
 
@@ -176,7 +178,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid md:grid-cols-4 gap-6 mb-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                         <div className="flex items-center justify-between">
                             <div>
@@ -191,52 +193,48 @@ export default function DashboardPage() {
                                 </svg>
                             </div>
                         </div>
+                        <Link href="/dashboard/all-decisions" className="text-blue-600 hover:text-blue-700 text-xs font-medium mt-2 inline-block">
+                            View all decisions →
+                        </Link>
                     </div>
 
                     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 text-sm mb-1">Avg Audit Variance</p>
+                                <p className="text-gray-600 text-sm mb-1">Audits Run</p>
                                 <p className="text-3xl font-bold text-gray-900">
-                                    {analytics?.avg_risk_score ? analytics.avg_risk_score.toFixed(2) : '0.00'}
+                                    {analytics?.analyzed_decisions || 0}
                                 </p>
                             </div>
-                            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                         </div>
-                        <p className="text-gray-500 text-sm mt-2">
-                            {analytics?.avg_risk_score && analytics.avg_risk_score < 5 ? 'Good standing' :
-                                analytics?.avg_risk_score && analytics.avg_risk_score < 15 ? 'Moderate variance' : 'High variance'}
-                        </p>
                     </div>
 
                     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 text-sm mb-1">Employees Audited</p>
+                                <p className="text-gray-600 text-sm mb-1">Projects Tracked</p>
                                 <p className="text-3xl font-bold text-gray-900">
-                                    {analytics?.pending_decisions || 0}
+                                    {analytics?.total_projects || 0}
                                 </p>
                             </div>
-                            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                 </svg>
                             </div>
                         </div>
-                        <p className="text-amber-600 text-sm mt-2">
-                            {analytics?.pending_decisions ? 'Needs attention' : 'All clear'}
-                        </p>
                     </div>
 
                     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 text-sm mb-1">Flagged Allocations</p>
-                                <p className="text-3xl font-bold text-gray-900">
+                                <p className="text-gray-600 text-sm mb-1">Flagged Decisions</p>
+                                <p className="text-3xl font-bold text-red-600">
                                     {analytics?.high_risk_decisions || 0}
                                 </p>
                             </div>
@@ -246,7 +244,9 @@ export default function DashboardPage() {
                                 </svg>
                             </div>
                         </div>
-                        <p className="text-gray-500 text-sm mt-2">Requires review</p>
+                        <Link href="/dashboard/flagged" className="text-red-600 hover:text-red-700 text-xs font-medium mt-2 inline-block">
+                            View all flagged →
+                        </Link>
                     </div>
                 </div>
 
@@ -254,7 +254,7 @@ export default function DashboardPage() {
                 <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-xl font-bold text-gray-900">Recent Decisions</h3>
-                        <Link href="/decisions" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <Link href="/dashboard/all-decisions" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                             View All decisions
                         </Link>
                     </div>

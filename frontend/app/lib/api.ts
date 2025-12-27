@@ -47,6 +47,8 @@ export interface DashboardAnalytics {
     high_risk_decisions: number
     avg_risk_score: number
     decisions_by_type: Record<string, number>
+    active_employees: number
+    total_projects: number
 }
 
 // ====================================================================
@@ -482,7 +484,9 @@ async function getDashboardAnalyticsLocal(): Promise<DashboardAnalytics> {
             analyzed_decisions: decisions?.filter(d => ['analyzed', 'reviewed', 'finalized'].includes(d.status)).length || 0,
             high_risk_decisions: 0,
             avg_risk_score: 0,
-            decisions_by_type: {}
+            decisions_by_type: {},
+            active_employees: 0,
+            total_projects: 0
         }
 
         // Calculate high risk and average score
@@ -523,7 +527,9 @@ async function getDashboardAnalyticsLocal(): Promise<DashboardAnalytics> {
             analyzed_decisions: 0,
             high_risk_decisions: 0,
             avg_risk_score: 0,
-            decisions_by_type: {}
+            decisions_by_type: {},
+            active_employees: 0,
+            total_projects: 0
         }
     }
 }
@@ -631,7 +637,7 @@ export async function getEmployees(filters?: {
 }): Promise<Employee[]> {
     let query = supabase
         .from('employees')
-        .select('*, department:departments(*), reports_to:employees!reports_to_id(*)')
+        .select('*, department:departments(*)')
         .order('name')
 
     if (filters?.department_id) {
@@ -651,7 +657,7 @@ export async function getEmployees(filters?: {
 export async function getEmployee(id: string): Promise<Employee> {
     const { data, error } = await supabase
         .from('employees')
-        .select('*, department:departments(*), reports_to:employees!reports_to_id(*)')
+        .select('*, department:departments(*)')
         .eq('id', id)
         .single()
 

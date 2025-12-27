@@ -198,13 +198,20 @@ export async function savePromotionDecision(
     totalSlots: number,
     candidates: PromotionCandidate[]
 ) {
-    // 1. Create Decision Record
+    // Get the current authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+        throw new Error('Not authenticated - please sign in to save promotion decisions');
+    }
+
+    // 1. Create Decision Record with created_by field
     const { data: decision, error: decError } = await supabase
         .from('promotion_decisions')
         .insert({
             name,
             total_slots: totalSlots,
-            status: 'calculated'
+            status: 'calculated',
+            created_by: user.id
         })
         .select()
         .single();

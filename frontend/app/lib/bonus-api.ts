@@ -246,10 +246,19 @@ export async function createBonusDistribution(
     distribution: Omit<BonusDistribution, 'id' | 'created_at' | 'updated_at'>,
     allocations: BonusAllocation[]
 ): Promise<{ distribution: BonusDistribution; allocations: BonusAllocation[] }> {
-    // 1. Create distribution
+    // Get the current authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+        throw new Error('Not authenticated - please sign in to save bonus distributions')
+    }
+
+    // 1. Create distribution with created_by field
     const { data: distData, error: distError } = await supabase
         .from('bonus_distributions')
-        .insert(distribution)
+        .insert({
+            ...distribution,
+            created_by: user.id
+        })
         .select()
         .single()
 
