@@ -1,54 +1,43 @@
-# GlassBox AI - Ethical HR Decision Intelligence Platform
+# GlassBox AI — HR Bonus & Promotion Decision Support Tool
 
-GlassBox AI is an advanced algorithmic decision-support system designed to eliminate bias from critical HR processes. By leveraging multi-dimensional data analysis, it provides transparent, explainable, and fair recommendations for Compensation (Bonuses) and Career Progression (Promotions).
+A full-stack app that helps managers and HR make more consistent bonus and promotion decisions. It calculates a suggested score from manager ratings, peer reviews, and KPI data, then flags cases where a manager's actual decision diverges significantly from that suggestion, so outliers get a second look.
 
+This is a decision-support tool, not an automated decision-maker — it surfaces numbers and flags anomalies; a human still makes the final call.
 
-## 🚀 Key Features & Complexity
+## What it does
 
-### 1. 💰 Intelligent Bonus Distribution Engine
-Unlike simple "flat percentage" models, GlassBox uses a sophisticated weighted algorithm to calculate fair bonus allocations:
-- **Multi-Source Logic**: Aggregates Manager Ratings (40%), Peer Reviews (30%), and Objective KPIs (30%).
-- **Project Complexity Weighting**: adjusts scores based on the difficulty and impact of projects.
-- **Task-Level Granularity**: Analyzes individual task completion and "Task Weight" to determine contribution.
-- **Normalization**: Automatically normalizes scores across departments to prevent "grade inflation" from lenient managers.
+### Bonus calculation
+- Combines manager ratings (40%), peer reviews (30%), and KPI data (30%) into a weighted score
+- Adjusts for project complexity/impact and task-level weighting
+- Normalizes scores across departments to correct for managers who rate everyone too leniently or harshly
 
-### 2. 📈 Promotion Readiness & 9-Box Grid
-A fully automated career progression engine:
-- **Eligibility Gates**: Enforces strict tenure and performance thresholds before a candidate is even considered.
-- **9-Box Grid Auto-Placement**: Plots employees based on Performance vs. Potential using historical data.
-- **Bias Detection**: Flags "High Performance / Low Potential" anomalies that often indicate bias against critical contributors.
-- **AI Readiness Score**: Calculates a 0-100% promotion readiness score based on role changes, recent ratings, and peer feedback.
+### Promotion tracking (9-box grid)
+- Places employees on a Performance vs. Potential grid using historical data
+- Enforces basic eligibility rules (tenure, minimum performance) before someone is considered
+- Flags "high performance / low potential" combinations for review — this pattern is a heuristic sometimes associated with reviewer bias, not proof of it
+- Produces a 0–100 promotion-readiness score
 
-### 3. 🛡️ Algorithmic Audit & Variance Detection
-The "GlassBox" feature ensures human accountability:
-- **Variance Analysis**: Instantly compares Manager Decisions vs. AI Recommendations.
-- **Significant Deviation Flagging**: Automatically flags decisions that deviate >20% from the model.
-- **Explanation Requirement**: Forces managers to provide written justifications for flagged decisions.
-- **Audit Trails**: Immutable logs of all decisions, overrides, and justifications for compliance.
+### Audit trail
+- Compares each manager's actual decision to the model's suggested score
+- Flags decisions that deviate more than 20% from the suggestion
+- Requires a written justification when a decision is flagged
+- Logs decisions and overrides for later review
 
-### 4. 🏢 Organization Intelligence
-- **Dynamic Org Chart**: Graph-based data structure to handle complex reporting lines.
-- **Auto-Reassignment**: Triggers that automatically reassign reports when a manager is promoted or terminated.
-- **Role History Tracking**: SCD (Slowly Changing Dimensions) approach to tracking role and salary history over time.
+### Org structure
+- Graph-based org chart for reporting lines
+- Auto-reassigns reports when a manager changes role or leaves
+- Tracks role/salary history over time (slowly-changing-dimension style)
 
-## 🛠️ Technology Stack
+## Tech stack
+- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
+- **Database**: PostgreSQL via Supabase, with Row Level Security policies so managers only see their own team's data and HR sees everything
+- **Backend logic**: Supabase Edge Functions for calculations, database triggers for integrity constraints, SQL views for analytics
+- **Access control**: RBAC layered on top of RLS
 
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS (Glassmorphism Design System)
-- **Database**: PostgreSQL (Supabase) with strict Row Level Security (RLS) policies.
-- **Backend Logic**: 
-    - Supabase Edge Functions for heavy calculations.
-    - Database Triggers for data integrity constraints.
-    - Complex SQL Views for real-time analytics.
-- **Security**: 
-    - Role-Based Access Control (RBAC).
-    - Policy-driven data isolation (Managers see only their team, HR sees all).
+## Status
+A self-contained project — built and tested locally, not currently deployed with real company data. The RLS policies and audit logging are implemented and working, but haven't been through a real security review or production load.
 
-## 🔒 Security & Compliance
-This project enforces **Privacy by Design**:
-- **Row Level Security (RLS)**: Database policies ensure no API endpoint can ever leak unauthorized data, even if the frontend code is compromised.
-- **Audit Logging**: Every sensitive write operation is logged into a separate, tamper-evident audit table.
-
-## 📦 Getting Started
+## Getting started
 
 ### Prerequisites
 - Node.js 18+
@@ -56,31 +45,17 @@ This project enforces **Privacy by Design**:
 
 ### Installation
 ```bash
-# Clone the repository
 git clone https://github.com/your-org/glassbox-ai.git
-
-# Install dependencies
 cd frontend
 npm install
-
-# Start development server
 npm run dev
 ```
 
-### Database Setup
-Schema migrations and RLS policies are managed via SQL scripts in the `/supabase` folder. Run `supabase db reset` to apply all migrations.
+### Database setup
+Schema migrations and RLS policies live in `/supabase`. Run `supabase db reset` to apply all migrations.
 
-
----
-*Built for the Future of Work.*
-
-## 🚀 Deployment Config
-
-### Vercel Setup
-When deploying to Vercel, you must configure the following:
-
-1.  **Root Directory**: Set to `frontend` (Settings > General).
-2.  **Environment Variables**: Add your Supabase keys:
-    - `NEXT_PUBLIC_SUPABASE_URL`
-    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
+## Deployment (Vercel)
+1. Set **Root Directory** to `frontend` (Settings > General)
+2. Add environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
