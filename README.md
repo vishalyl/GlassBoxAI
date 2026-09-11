@@ -2,7 +2,6 @@
 
 GlassBox AI is an advanced algorithmic decision-support system designed to eliminate bias from critical HR processes. By leveraging multi-dimensional data analysis, it provides transparent, explainable, and fair recommendations for Compensation (Bonuses) and Career Progression (Promotions).
 
-![GlassBox AI Dashboard](/frontend/public/dashboard-preview.png)
 
 ## 🚀 Key Features & Complexity
 
